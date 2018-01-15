@@ -290,15 +290,146 @@ Glue
 
 Security Identification and compliance
 ---------------
+
+IAM - identy access management
+
+Cognito
+* Device authentication
+* Authenticate using mobile apps
+* Once you've authed it can allow you to request temporary access
+
+GardDuty
+* Monitors for malicous activity on your account
+
+Inspector
+* Agent you install on your instances
+* Allows you to run tests against them
+* Checkes for security vulns etc
+
+Macie
+* Scans S3 buckets to see if there is any personaly identifiable information
+* Alerts you about it
+
+Certificate Manager
+* Get certs for free - if getting certs through AWS / route54
+
+CloudHSM
+* Hardware security modules
+
+DirectoryService
+* Intergration for AD into AWS
+
+WAF - Web application Firewall
+* Layer 7 Firewall
+* looks for XSS attacks
+
+Shield
+* Get it by default in lots of services
+* DDOS mitigation
+
+Advanced Shield
+* 24*7 team to mitigate DDOSs
+* AWS won't charge you for the attack
+
+Artifact
+* On demand access portal for AWS compliace reports
+* SOC controls
+* PCI reports etc
+
 Mobile services
 ---------------
+
+Mobile Hub
+* management console for your app backend
+* Setups backend for you
+
+Pinpoint
+* Targeted push notifications to drive engagement
+
+AWS Appsync
+* Automaticaly updates data in web / mobile apps
+* Syncs to offline when they come online
+
+Device Farm
+* Testing apps on real live devices
+
+Mobile Analytics
+* Analytic services for mobiles, duh
+
+AR / VR
+---------------
+
+Sumerian
+* AR / VR / 3d app development
+
+Application intergration
+---------------
+
+Step Functions
+* Managing different Lambda functions
+
+AmazonMQ
+* Amazons version of MQ / rabbit etc
+
+SNS - Simple notification service
+* Notification service
+
+SQS - Simple queue service
+* Decoupling infrastructure holds information in a queue for something else
+
+SWF - Simple workflow service
+* Used in Amazon warehouses
+* can have humans as a component
+
 Customer Engagement
 ---------------
+
+Connect
+* Contact center in the cloud
+
+Simple email service
+* Sending large amounts of emails
+* PAYG
+
 Business productivity
 ---------------
+
+Alexa for business
+
+Chime
+* Amazon video conferencing
+
+Work Docs
+* Dropbox like thing for AWS
+
+WorkMail
+* Sort of like O365 / gmail
+
+
 Desktop and app streaming
 ---------------
+
+Workspaces
+* VDI solution
+
+AppStream 2.0
+* Streaming apps - citrix
+
 Internet of things
 ---------------
-Game Development
+
+iOT
+
+iOT Device Management
+
+Amazon FreeRTOS
+* Free OS for microcontrolers
+
+GreenGrass
+* Software to run local compute, messaging, data caching, machine learning interfaces for connected devices
+
+Game development
 ---------------
+
+GameLift
+* Service to help develop games
