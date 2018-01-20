@@ -21,8 +21,23 @@ Origin
 
 Distribution
 * Name of the CDN collection of edge locations
+* Can have multiple origins
 
 Web Distribution - websites
-RTMP - media streaming
+RTMP - flash media streaming
+
+Setup
+---------------
+
+Restrict bucket access - forces all queries to go via Cloudfront and not via s3 directly
+Can set up HTTP methods for PUT/POST etc
+
+Can restrict access using signed cookies or URLs
+Also can do geo-restriction
+
+Default URL from cloudfront is rubbish - add a CNAME to make it meat friendly
+
+___It can take a while for the distution to be setup - during this time your requests will just be
+redirected to S3 directly instead of the cloudfront CDN___
 
 ---------------
