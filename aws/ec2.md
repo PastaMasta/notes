@@ -36,6 +36,10 @@ Dedicated hosts
 * Helps with licensing / legal reasons for multi-tenants
 * Can be done on-demand with reservations
 
+Two types of VMs:
+* HVM
+* Paravirtual
+
 Instance families
 ---------------
 
@@ -81,6 +85,8 @@ Block based storage
 
 Auto-replicated within a AZ - not replicated between AZs without $$$
 
+EBS volumes cannot be shared between instances - use EFS instead
+
 EBS types
 ---------------
 
@@ -105,5 +111,44 @@ Cold HDD (SC1)
 Magnetic (standard)
 * Lowest cost per GB
 * __IS__ bootable
+
+Encrypted volumes
+* Root boot device cannot be encrypted unless you provide your own AMI
+* Other volumes can be
+
+AMIs
+---------------
+
+Amazon machine images - snapshots of VMs
+
+Setup
+---------------
+
+* One subnet is in one AZ - can't cross zones!
+* Termination protection - off by default
+* Default action is to delete EBS volume when instance is deleted
+
+Security groups
+---------------
+
+Basically Virtual firewalls for your instances
+
+Can be tagged too
+
+Status checks
+---------------
+
+Two main types
+
+System status check
+* Checks that the hypervisor is working
+
+Instance status checks
+* Ensures that data can get to the OS
+
+Monitoring
+---------------
+
+Cloudwatch - provides metrics on lots of basics
 
 ---------------
