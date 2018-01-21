@@ -1,4 +1,3 @@
-
 EC2
 ======================================
 
@@ -29,6 +28,8 @@ Spot
 * Set maximum price - scale when it's there
 * Apps with flexible stop/start/scaling
 * non-urgent quiet / cheap period computing
+* If you terminate early you pay for the full hour
+* If AWS terminate because spot price has gone over your bid limit you get the hour for free
 
 Dedicated hosts
 * Physical EC2 server dedicated for our use
@@ -71,5 +72,38 @@ P2 - __Pretty Graphics__
 
 X1 - __eXtreme memory__
 * Extreme memory optimised
+
+EBS volumes
+---------------
+
+Storage volumes you attach to EC2 instances
+Block based storage
+
+Auto-replicated within a AZ - not replicated between AZs without $$$
+
+EBS types
+---------------
+
+General purpose SSD - (GP2)
+* 3 IOPs per GB up to 10K IOPs
+* Can burst 3K IOPs for extended periods of time at 3334 GiB and up
+
+Provisioned IOPs SSD - (IO1)
+* IO intensive operations
+* Ideal for over 10K IOPs
+* 20K IOPs per volume
+
+Throughput optimised HDD - (ST1)
+* Big data, Data warehouses, logs etc
+* Ideally for sequential data
+* __Can't be boot volumes__
+
+Cold HDD (SC1)
+* Lowest cost storage for infrequent access workloads
+* __Can't be boot volumes__
+
+Magnetic (standard)
+* Lowest cost per GB
+* __IS__ bootable
 
 ---------------
