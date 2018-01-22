@@ -137,6 +137,13 @@ __Snapshots live in S3__
 
 __Snapshots are incremental__
 
+EBS RAID
+---------------
+
+__Never do RAID 5 on AWS__
+
+Typically only used where you need more IOPs than one volume can provide
+
 AMIs
 ---------------
 
