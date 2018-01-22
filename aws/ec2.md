@@ -87,6 +87,8 @@ Auto-replicated within a AZ - not replicated between AZs without $$$
 
 EBS volumes cannot be shared between instances - use EFS instead
 
+Volumes must be in the same AZ as EC2 instances
+
 EBS types
 ---------------
 
@@ -115,6 +117,25 @@ Magnetic (standard)
 Encrypted volumes
 * Root boot device cannot be encrypted unless you provide your own AMI
 * Other volumes can be
+* Snapshots of encrypted volumes are automatically encrypted
+* Volumes restored from encrypted snapshots are automatically encrypted
+* Can't share encrypted volumes with other accounts
+
+EBS Volume upgrades, migration and snapshots
+---------------
+
+Volume size can be increased live
+
+Volume type can be upgraded from SSD to provisioned SSD
+
+Volumes can be snapshotted - snapshot can then be converted to a volume
+New volume can be in another AZ and of any storage type.
+
+Moving to a new region - snapshot, create AMI, copy to new region, create volume and boot
+
+__Snapshots live in S3__
+
+__Snapshots are incremental__
 
 AMIs
 ---------------
@@ -128,12 +149,18 @@ Setup
 * Termination protection - off by default
 * Default action is to delete EBS volume when instance is deleted
 
-Security groups
+Security groups / firewalls
 ---------------
 
 Basically Virtual firewalls for your instances
+* Control inbound and outbound
+* First line of defence
+* Any rule changes are immediate
+* Can have multiple per instance
 
-Can be tagged too
+__Rules are stateful - any inbound rules are automatically allowed back out__
+
+Each region has a default security group that allows traffic between instances in that region
 
 Status checks
 ---------------
