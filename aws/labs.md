@@ -15,5 +15,6 @@ EC2
 * Set up a EC2 instance in region A, move it to region B
 * Resize existing disks
 * create a AMI
+* Setup a load balancer
 
 ---------------
