@@ -121,6 +121,23 @@ Encrypted volumes
 * Volumes restored from encrypted snapshots are automatically encrypted
 * Can't share encrypted volumes with other accounts
 
+EBS root volume backing types
+---------------
+
+Two backing types:
+
+EBS backed volumes - normal disks
+* Launched from a EBS snapshot
+
+Instance store backed - (Ephemeral Storage)
+* Restriced to certain EC2 instance sizing
+* More can be added __BEFORE__ the VM starts - not after
+* __can't stop or start - only reboot or terminate__
+* Less durability than EBS
+* Pre-dates EBS
+* Launched from a template in S3
+* If underlying host dies, everything is lost
+
 EBS Volume upgrades, migration and snapshots
 ---------------
 
@@ -155,6 +172,8 @@ Setup
 * One subnet is in one AZ - can't cross zones!
 * Termination protection - off by default
 * Default action is to delete EBS volume when instance is deleted
+
+If the hypervisor is in a bad way then you can stop / start and your instance will start on another machine
 
 Security groups / firewalls
 ---------------
