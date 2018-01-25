@@ -17,8 +17,8 @@ Ingredients
 - [ ] 1 tbsp hot chilli powder
 - [ ] 1 tbsp hot curry powder
 - [ ] 1 tbsp garam masala
-- [ ] 1.5 tsp turmeric
-- [ ] 1 tsp salt
+- [ ] 1.5 tbsp turmeric
+- [ ] 1/2 tbsp salt
 
 ##### Extras
 - [ ] 2 fistfulls of spinach (shredded)
