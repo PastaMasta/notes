@@ -51,5 +51,6 @@ Permissions
 Roles
 ---------------
 
-Grant access to entities we trust - i.e. ec2 instance calling s3 stuff
-Polices are assigned just like users
+* Grant access to entities we trust - i.e. ec2 instance calling s3 stuff
+* Polices are assigned just like users
+* Roles are also global

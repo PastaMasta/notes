@@ -7,6 +7,12 @@ pip install awscli --user
 aws configure
 ```
 
+Credentials
+---------------
+
+User access keys are less secure than roles
+__Never keep keys on AWS__
+
 S3
 ---------------
 
