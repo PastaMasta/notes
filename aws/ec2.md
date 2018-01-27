@@ -211,4 +211,17 @@ Metadata
 
 curl http://169.254.169.254/latest/meda-data/
 
+Placement groups
+---------------
+
+Logical grouping of instances within a AZ
+Instances within a AZ have faster networking between themselves - inter AZ / region has higher latency
+
+* Low network latency
+* High throughput (10GB)
+* Can't span AZs
+* Only certain instance types
+* Can't merge
+* Can't move existing instances into one
+
 ---------------
