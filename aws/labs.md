@@ -16,6 +16,7 @@ EC2
 - [ ] Resize existing disks
 - [ ] create a AMI
 - [x] Setup a load balancer
+- [ ] Setup an auto-scaling group
 
 IAM / roles
 ---------------
