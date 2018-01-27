@@ -20,4 +20,7 @@ Copy all objects between buckets
 ```
 aws s3 cp --recursive s3://bucket1 s3://bucket2
 ```
+
+__Some regions need you to specify --region ${region}__
+
 ---------------

@@ -54,3 +54,4 @@ Roles
 * Grant access to entities we trust - i.e. ec2 instance calling s3 stuff
 * Polices are assigned just like users
 * Roles are also global
+* Once assigned to an instance / service they don't need more authentication - i.e. setting up access keys from users

@@ -24,4 +24,10 @@ IAM / roles
 - [x] Give user access to a specific s3 bucket
 - [ ] Setup access keys, destroy instances via the cli
 
+
+Clever things to experiment with
+---------------
+- [ ] Automate updating of security groups based on my public IP
+- [ ] Setup roles to allow for an ec2 instance to self terminate i.e. simulate terminate on shutdown option
+
 ---------------

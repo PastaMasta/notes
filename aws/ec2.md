@@ -175,6 +175,8 @@ Setup
 
 If the hypervisor is in a bad way then you can stop / start and your instance will start on another machine
 
+Scripts can be added during provisioning - standard plaintext script that is run as root during provisioning
+
 Security groups / firewalls
 ---------------
 
@@ -203,5 +205,10 @@ Monitoring
 ---------------
 
 Cloudwatch - provides metrics on lots of basics
+
+Metadata
+---------------
+
+curl http://169.254.169.254/latest/meda-data/
 
 ---------------
