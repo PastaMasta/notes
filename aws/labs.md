@@ -16,19 +16,20 @@ EC2
 - [ ] Resize existing disks
 - [ ] create a AMI
 - [x] Setup a load balancer
-- [ ] Setup an auto-scaling group
+- [x] Setup an auto-scaling group
 
 IAM / roles
 ---------------
 
 - [x] Setup user
 - [x] Give user access to a specific s3 bucket
-- [ ] Setup access keys, destroy instances via the cli
+- [x] Setup access keys, destroy instances via the cli
 
 
 Clever things to experiment with
 ---------------
 - [ ] Automate updating of security groups based on my public IP
-- [ ] Setup roles to allow for an ec2 instance to self terminate i.e. simulate terminate on shutdown option
+- [x] Setup roles to allow for an ec2 instance to self terminate i.e. simulate terminate on shutdown option
+- [ ] Auto update roles to allow an instance to only kill itself
 
 ---------------
