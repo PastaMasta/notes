@@ -25,11 +25,17 @@ IAM / roles
 - [x] Give user access to a specific s3 bucket
 - [x] Setup access keys, destroy instances via the cli
 
+VPCs
+---------------
+
+- [ ] Setup custom VPC with seperate subnets for internal and external
+- [ ] Setup routes between internal and external so front end can talk to back end
 
 Clever things to experiment with
 ---------------
 - [ ] Automate updating of security groups based on my public IP
 - [x] Setup roles to allow for an ec2 instance to self terminate i.e. simulate terminate on shutdown option
 - [ ] Auto update roles to allow an instance to only kill itself
+- [ ] VPN to VPC
 
 ---------------
