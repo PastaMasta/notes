@@ -34,12 +34,25 @@ All machines have a common set of directories under /data - enforced by chef-bas
 These will automount from the master server as required
 
 ```
-/data/
-├── backup
-├── docs
-├── repo
-├── users
-└── virt
+/data
+|-- backup
+|   |-- local - Backups of devices on the local lan
+|   `-- remote - local mirrors of remote backups (Github repos etc)
+|-- docs - Common doccument share between desktops
+|-- repo
+|   |-- build - files to help build machines
+|   |-- media
+|   |   |-- movies
+|   |   |-- music
+|   |   |-- picture
+|   |   `-- shows
+|   |-- os - OS mirros and misc isos etc
+|   |   `-- CentOS
+|   |   `-- isos - auto-generated links to every *.iso under os
+|   `-- software - random non-rsynced software
+|-- users - user homeshares
+`-- virt
+    `-- storage - Storage pool for KVM
 ```
 
 -------------------
