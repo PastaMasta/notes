@@ -1,6 +1,7 @@
 Notes
 ======================================
-This repo is a collection of my notes to help avoid the limitations of the meatware in my skull.
+
+This repo is a collection of my notes to help avoid the limitations of the squishy meatware I have in my head.
 
 Dependencies
 --------------
