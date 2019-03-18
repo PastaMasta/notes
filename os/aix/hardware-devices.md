@@ -1,6 +1,11 @@
 Hardware and devices
 ======================================
 
+List hardware
+```
+prtconf
+```
+
 Show firmware
 ```
 lsmcode
@@ -15,6 +20,11 @@ lscfg -l $device
 List adapters
 ```
 lsdev -Cc adapter
+```
+
+Refresh what hardware you have
+```
+cfgmgr
 ```
 
 # Hardware overview
