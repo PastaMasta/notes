@@ -1,0 +1,770 @@
+
+The below covers exactly what was listed in the Chef Basic Chef Fluency Badge document, Sept'17.
+The notes include my understanding (which may not always exactly be 100% correct) supplemented by the Chef Online Docs / Product Pages / Google.
+
+== Key Areas ==
+
+1) An understanding of basic Chef terminology.
+2) An understanding of Chef product offerings.
+3) An understanding of Chef's design philosophy.
+4) An understanding of Chef's approach to workflow and compliance.
+5) An understanding of basic Chef coding skills.
+
+
+== CHEF BASIC TERMINOLOGY ==
+
+=== RESOURCES ===
+* Idempotency/convergence - test & repair model
+A node is converged (also a phase in the chef-client run) from it's current state to a desired state described in the run-list recipe code.
+An idempotent recipe will always produce the same end state, no matter how many times it is run.  There should be no "side-effects" of running multiple times.
+
+* Common resources and their actions
+** Default actions (QuestionNum:1)(In Docs?:Yes)(In Training?:Yes)
+*** The ':nothing' action
+The resource is created during the compile phase, but will not complete any action in itself during the converge phase.
+Normally the resource would be called from another resource with a given action to complete.
+*** The 'supports' directive
+Enables the actions a resource supports to be specified beyond the standard set, e.g. some services might support reload
+*** The 'not_if' and 'only_if' directives (QuestionNum:2)(In Docs?:Yes)(In Training?:No)
+Used for Chef guards to control whether a resource is run or not, based on the condition specified.
+*** Resource extensibility (QuestionNum:3)(In Docs?:Yes)(In Training?:Yes)
+Custom resources can be created to provide functionality not present in the Chef standard resources.
+In >=12.5 you can use existing resources as building blocks for your new resource:
+- So you could abstract the package install, config file deployment, service start and enablement etc. all under your own new resource, e.g. deploy_my_app
+
+=== RECIPES ===
+* What a recipe is
+Is a construct of Chef resource DSL and Ruby code to describe a desired configuration state.
+
+* Importance of the resource order (QuestionNum:6)(In Docs?:Yes)(In Training?:Yes)
+The order of resources in a recipe is key, as Chef will action them from first to last in a recipe and across a run-list.
+If one resource is dependant upon another then they must be ordered accordingly.
+
+* How to use 'include_recipe' (QuestionNum:8)(In Docs?:Yes)(In Training?:Yes)
+You can use include_recipe method to include recipes from the same or other cookbooks, the latter requiring a dependency to be set.
+e.g. include_recipe 'mycookbook::myrecipe'
+
+* What happens if a recipe is included multiple times in a run_list (QuestionNum:9)(In Docs?:Yes)(In Training?:No)
+During the compile phase the node run-list is resolved such that any given recipe is only run once.
+
+* The 'notifies' and 'subscribes' directives (QuestionNum:7)(In Docs?:Yes)(In Training?:No)
+A resource can notify (call) another resource to take a given action, immediately or delayed.
+A resource can subscribe (listen) to another resource and complete a given action.
+The former appears to be much more popular.
+
+=== COOKBOOKS ===
+* Cookbook contents (QuestionNum:11)(In Docs?:Yes)(In Training?:Yes)
+Cookbooks normally contain: metadata.rb, README.md, CHANGELOG, recipes, attributes and possibly files, templates, test *spec code.
+
+* Naming conventions
+Are there any?  We got burnt using hyphens.
+
+* Cookbook dependencies (QuestionNum:12)(In Docs?:Yes)(In Training?:Yes)
+Declared in the metadata.rb file, e.g. depends 'mycookbook', '<=1.3.0'
+We used 'berk install' and 'berks upload' to help manage cookbook dependencies on the training
+
+* The default recipe (QuestionNum:13)(In Docs?:Yes)(In Training?:Yes)
+We could of previously used: include_recipe 'mycookbook'
+Which is the same as: include_recipe 'mycookbook::default'
+If a recipe is not specified, such as the method above or explicitly in a node run-list, then the default.rb recipe is called.
+
+=== CHEF SERVER ===
+* How the Chef server acts as an artifact repository
+It stores: organisations, environments, roles, cookbooks, data bags (chef-vault + encrypted data bags), node attribute data (from recipes and ohai)
+In terms of artifacts the most obvious example is cookbooks and the recipes they contain.
+
+* How the Chef server acts as an index of node data
+Node object data is posted back to the Chef Server at the end of the chef-client run, containing ohai and attribute data.
+This data is indexed via Apache solnr for easy access via knife search and the API.
+
+* Chef solo vs Chef server (QuestionNum:17)(In Docs?:Yes)(In Training?:No)
+Think chef solo was the forerunner to chef zero - which is basically running a fake Chef server in memory to enable you to test a cookbook locally (--local-mode or -z)
+This is local artifacts versus remote (Chef server).
+
+* Chef server's distributed architecture (QuestionNum:16)(In Docs?:Yes)(In Training?:Yes)
+You can run everything on one node or you can split various elements out, e.g. back-end and front-end servers
+
+* Scalability (QuestionNum:18)(In Docs?:Yes)(In Training?:No)
+Can scale to 000s of nodes per server.  Spliting to multiple front and back-end servers enables horizonatal scaling.
+Need to consider your chef-client runs per minute - i.e. how many nodes are interacting with the Chef server every minute.
+10k nodes and 333/min is considered the single Chef server limit.
+Also consider the number of cookbooks (plus versions), splay of client scheduling, size of node data returned.
+
+
+=== SEARCH ===
+* What search is(QuestionNum:21)(In Training?:Yes)
+All the data stored on the Chef server in the PostgreSQL database is indexed via Apache solnr
+Can search node attributes in Chef Manage GUI or using knife on the cli, i.e. knife search <INDEX> <Query>
+
+* How to search for node information
+Node is the default index and used if none is specified
+knife search node "name:*"
+knife search node "roles:mydodgyrole"
+The query is comprised of: key:search_pattern
+Can use exact, wildcard, range, or fuzzy matching
+Can also use the search method in a recipe or via the API.
+
+* What and how many search indexes Chef server maintains (QuestionNum:23)(In Docs?:Yes)(In Training?:No)
+There are four search indexes: client, environment, node, & role, plus you can search data bag items
+
+* What a databag is
+A data bag is a global variable that is stored as JSON data and is accessible from a Chef server.
+It can be used to store specific content for certain nodes.
+It abstracts this data from the cookbook and enables it to be stored separately from the recipe logic.
+A data bag is indexed for searching and can be loaded by a recipe or accessed during a search.
+
+* How to use search for dynamic orchestration
+Can use search to determine common attributes to determine recipe behaviour.
+E.g. checking for nodes in the same Prod environment running a role when building a related pool of app servers
+
+* How to invoke a search from the command line (QuestionNum:22)(In Docs?:Yes)(In Training?:Yes)
+knife search <index> <key:search_pattern>
+knife search node "roles:mydodgyrole"
+
+
+=== CHEF CLIENT ===
+* What the Chef client is (QuestionNum:28)(In Docs?:Yes)(In Training?:No)
+The chef-client is an agent software package that is installed on the node endpoint devices.
+
+* The function of Chef client vs the function of Chef server
+The chef-client runs on the nodes, executing cookbook recipe code to change the configuration of a node to a desired state.
+The Chef Server stores various artifacts that enable infrastructure and applications to be defined as code, whilst collecting data with ohai plugins and from the chef-client runs thenselves.
+
+* What 'why-run' is
+A 'why-run' is like a dry-run and doesn't actually update a node state (in the standard Chef resources, other people may not code it correctly in their custom resources).
+Use --why-run or -W
+
+* How to use '--local-mode'
+Run chef-client on the node, wth any required cookbooks and data bags stored locally.
+chef-client --local-node or -z
+
+* How the Chef client and the Chef server communicate (QuestionNum:26)(In Training?:No)
+The client node has a client.rb file that specifies the Chef server to contact and the pem key file the client should use.
+The client contacts the Chef server over port 443 or 80 by sending it's private key for the server to authenticate.
+The server then sends the node it's run-list to resolve and execute.
+
+* The Chef client configuration (QuestionNum:27)(In Docs?:Yes)(In Training?:Yes)
+Configuration is stored in the client.rb file.
+The Chef Server stores the run-list of the node.
+The run-list contains the cookbook recipes that a node will download and execute to achieve a desired configuration state.
+
+
+=== NODES ===
+* What a node is
+A node is an endpoint that is managed by the Chef server to attain a desired state of configuration
+
+* What a node object is
+A node object is the data that is stored on the Chef server regarding a node.
+This can include: ohai and node attribute data collected during a chef-client run and configuration information, such as the run-list and environment.
+
+* How a node object is stored on Chef server (QuestionNum:33)
+In a PostgreSQL database; nodes post compressed JSON data back to the Chef server at the end of a chef-client run.
+
+* How to manage nodes (QuestionNum:31)(In Docs?:Yes)(In Training?:No)
+Nodes can be managed using "knife node" or via the Chef Manage GUI or API
+
+* How to query nodes
+knife search node <key:search_pattern>
+
+* How to name nodes (QuestionNum:32)(In Docs?:Yes)(In Training?:No)
+The name can be set in the client.rb file on the host itself and when initially bootstrapping a node.
+The node object can also be edited directly on the Chef server.
+
+
+=== RUN LIST ===
+* What a run_list is (QuestionNum:38)(In Docs?:Yes)(In Training?:Yes)
+A run_list is configured on a per node basis and contains the cookbook recipes and/or roles that are assigned to a node.
+The items in the run-list are run in exactly the order they are defined.
+A recipe will only ever be run once.
+
+* What nested run_lists are(QuestionNum:36)(In Docs?:Yes)(In Training?:No)
+Cookbooks can use the include_recipe method to define other recipes that should be run, which creates a nested run-list.
+The full run_list is not apparent until it is resolved by the node at run-time.
+
+* Where a run_list is stored
+The run_list is normally stored in each node object on the Chef Server.
+It can also be defined with the "--run-list" option when bootstrapping the node.
+
+* What does a run_list consist of
+'recipe[COOKBOOK::RECIPE]' or 'role[ROLE]'
+
+* How to look up run_lists
+knife node show NODE_NAME -r
+Use Chef Manage UI
+knife status --run-list
+
+* How to set and change run_lists (QuestionNum:37)(In Docs?:Yes)(In Training?:No)
+knife node run_list set NODE_NAME 'recipe[COOKBOOK::RECIPE_NAME],recipe[COOKBOOK::RECIPE_NAME],role[ROLE_NAME]'
+knife node run_list add NODE_NAME 'recipe[COOKBOOK::RECIPE_NAME]
+knife node run_list remove NODE_NAME 'recipe[COOKBOOK::RECIPE_NAME]
+Using the Chef Manage UI
+
+
+=== ROLES ===
+* What roles are
+A role is a way to define certain patterns and processes that exist across nodes in an organization as belonging to a single job function. 
+Each role consists of zero (or more) attributes and a run-list.
+
+* How a role ensures code consistency across nodes
+Ensures a common set of recipes and attributes are applied to a related group of nodes.
+
+* Where roles can be stored (QuestionNum:42)(In Docs?:Yes)(In Training?:Yes)
+Normally stored in a version control system, often in a roles directory with the associated cookbook, and uploaded to the Chef Server for use.
+
+* How roles are defined
+Role data is stored in two formats: as a Ruby file that contains domain-specific language and as JSON data.
+knife role from file myrole.json
+knife role create myrole # Define in $EDITOR
+
+* What the components of a role are (QuestionNum:41)(In Docs?:Yes)(In Training?:Yes)
+Zero or more attributes and a run-list
+
+* Roles vs recipes vs run_lists
+roles - defines a run-list (can include attributes) for a related group of nodes
+recipes - Chef resource DSL code to configure a node
+run_lists - can contain recipes and/or roles
+
+* How to name roles
+Role names need to be unique within a Chef organisation
+
+* How to apply roles to nodes
+See above on how to set and change run_lists
+
+* How to edit roles
+knife role edit ROLE_NAME
+knife role show myrole -Fj >myrole.json # Edit the output file && knife role from file myrole.json
+
+
+=== ENVIRONMENTS ===
+* The purpose of environments (QuestionNum:47)(In Docs?:Yes)(In Training?:Yes)
+An environment is a way to map an organisation’s real-life workflow to what can be configured and managed when using Chef server.
+
+* How to use environments to manage cookbook release cycles (QuestionNum:46)(In Docs?:Yes)(In Training?:Yes)
+Versions of cookbooks can be "promoted" through the Chef environments, aligned to a release cycle, such as development, UAT, & Prod.
+Note that the _default environment always exists and does not have any cookbook version constraints.
+
+* How to use environments to constrain cookbooks (QuestionNum:48)(In Docs?:Yes)(In Training?:Yes)
+Nodes are assigned to Chef environments.
+Versions of cookbooks can be constrained on a per environment basis
+e.g. the below would constrain the versions of the cookbooks that can be used by nodes in the environment:
+    "cookbook_versions": {
+    "apache": "<= 2.0.0",
+    "chef-client": "= 4.3.1"
+  }, 
+
+* How to put nodes into an environment
+knife node environment set NODE_NAME ENVIRONMENT
+Via the knife bootstrap --environment option
+Using "environment" setting in the client.rb file (this overrides any setting on the Chef server)
+Using the Chef Manage UI
+
+
+=== INFRASTRUCTURE AS CODE ===
+* What the advantages are of defining infrastructure as code (QuestionNum:51)(In Docs?:Yes)(In Training?:Yes)
+Faster deployment
+Increased efficiency that easily scales
+Version control your infrastructure
+Dynamic deployment
+Reduced risk
+
+* The reasons for defining infrastructure as code (QuestionNum:52)(In Docs?:Yes)(In Training?:No)
+Infrastructure as Code (IAC) is a type of IT infrastructure that operations teams can automatically manage and provision through code, rather than using a manual process.
+Infrastructure as Code is sometimes referred to as programmable infrastructure.
+Reducing risk and increasing consistency of builds across your infrastructure
+
+* The difference between rolling back and rolling forward (QuestionNum:53)(In Docs?:Yes)
+In Chef there is no 'undo', there is only 'do' or 'do not'.
+Recipes would need to be forward fixed to ensure a node reaches the correct desired state.
+
+
+=== DESIRED STATE CONFIGURATION ===
+* The imperative vs the declarative approach to configuration management (QuestionNum:57)(In Docs?:No)(In Training?:No)
+Imperative focuses on how and declarative focuses on what.
+Declarative programming means writing code to describe what the program should do as opposed to how it should do it, program decides the order to complete the tasks.
+Imperative programming involves writing code that follows explicit steps to solving a problem, completing a task, or achieving a desired result - similar to writing a script.
+Declarative, model-based programming (Puppet) vs imperative, or procedural, approach (Chef, Ansible).
+
+* The push vs the pull approach (QuestionNum:56)(In Docs?:Yes)(In Training?:Yes)
+chef-client works using the pull approach.  It initiates connection to the Chef Server to pull down its run-list and required cookbooks to converge to the desired state.
+There are Chef push jobs, which allow a push approach from the server side to be used.
+
+* What Windows DSC is
+Windows Desired State Configuration is a feature of Windows PowerShell.
+It provides a set of language extensions, cmdlets, and resources that can be used to declaratively configure software. 
+DSC is similar to Chef, in that both tools are idempotent, take similar approaches to the concept of resources, describe the configuration of a system, and then take the steps required to do that configuration.
+
+* What happens if you remove a resource from a recipe (QuestionNum:58)(In Docs?:Yes)(In Training?:No)
+The resource will no longer be compiled as part of the recipe and not change the state of future nodes that had not run the recipe previously.
+Nodes that had already converged the recipe with the resource will not be changed after it is removed.  Node state remains the same.
+
+
+=== SUPERMARKET ===
+* The Supermarket value proposition
+Chef Supermarket is the site for community cookbooks. It provides an easily searchable cookbook repository and a friendly web UI.
+The same can be provided for a private supermarket.
+Makes cookbooks easily accessible for Chef developers.  Can be used as the source for all "released" cookbook versions.
+
+* What you can store in Supermarket? (QuestionNum:62)(In Docs?:Yes)(In Training?:No)
+Cookbooks and InSpec profiles.
+
+* What a private Supermarket is
+You can download the Chef supermarket package and install it on premise to host internal cookbooks
+
+* When to use a private Supermarket (QuestionNum:61)(In Docs?:Yes)(In Training?:No)
+To store all cookbooks that have been approved for use within your company.
+Cloning and using cookbooks in Production directly from the public Supermarket is clearly not a sensible strategy.
+Can also be used to store Inspec profiles
+
+* If Supermarket is a free or a premium feature (QuestionNum:63)(In Docs?:Yes)(In Training?:No)
+Free
+
+* If the items in Supermarket are free or cost money
+Cookbooks are freely available for use, though the Contributor Licensing Agreement used should be reviewed.
+
+
+=== CHEF DK ===
+* The Chef DK value proposition
+Helps to provide a common workflow and ecosystem for Chef cookbook development.
+A set of standard development tools for cookbook development.
+
+* Specific features of test-driven development (TDD)
+Write test(s)
+Run test(s) - note failure(s)
+Write code to pass test(s)
+Run test(s) - adjust code until they pass
+Refactor code - as codebase grows re-structure it so it is better ordered
+
+* Tools packaged in Chef DK
+chef-client and ohai
+chef and knife command line tools
+Test Kitchen, ChefSpec, Cookstyle, and Foodcritic
+InSpec
+Everything else needed to author cookbooks and upload them to the Chef server
+
+Berkshelf	A dependency manager for cookbooks.
+chef		A workflow tool for Chef.
+chef-client	The agent that runs Chef.
+chef-vault	Use to encrypt data bag items using the public keys of a list of nodes. This allows only those nodes to decrypt the encrypted values.
+ChefSpec	A unit testing framework that tests resources locally.
+Cookstyle	A Rubocop-based style-checking tool for writing clean cookbooks.
+Delivery CLI	A command-line tool for continuous delivery workflow. Is used to setup and execute phase jobs on an Chef Automate server.
+Fauxhai		A gem for mocking Ohai data in ChefSpec tests.
+Foodcritic	A lint tool for static analysis of recipe code.
+Test Kitchen	An integration testing framework tool that tests cookbooks across platforms.
+kitchen-dokken	A test-kitchen plugin that provides a driver, transport, and provisioner for rapid cookbook testing and container development using Docker and Chef.
+kitchen-vagrant	A Kitchen driver for Vagrant.
+knife-spork	A workflow plugin for knife that helps groups of people work together in the same chef-repo and Chef server.
+Ruby		The reference language for Chef.
+
+
+=== TEST KITCHEN ===
+* The Test Kitchen value proposition
+kitchen is an integration testing tool used by the chef-client.
+It is included in the ChefDK and covers a wide range of platforms on multiple cloud or virtualisation providers.
+Supports many Ruby testing frameworks:Rspec, Serverspec, Bats, & Minitest - with the latter 3 all based on Rspec.
+Uses a plugin driver architecture to enable testing on a wide range of cloud providers and virtualisation topologies, e.g. Vagrant, ec2, docker, google etc.
+
+* What TDD is
+"Test-driven development" refers to a style of programming in which three activities are tightly interwoven:
+coding, testing (in the form of writing unit tests) and design (in the form of refactoring).
+Focusing on writing only the code necessary to pass tests, designs can often be cleaner and clearer than is achieved by other methods.
+
+* The platforms supported by Test Kitchen
+Linux and Windows
+
+* How to include Test Kitchen in a pipeline
+Use the create/converge/verify/destroy or test kitchen options to test cookbook with kitchen instance(s)
+
+* Basic `kitchen` commands (QuestionNum:72)(In Docs?:Yes)(In Training?:Yes)
+kitchen create|converge|verify|destroy|test
+kitchen login
+
+* Basic `kitchen` configuration (QuestionNum:71)(In Docs?:Yes)(In Training?:Yes)
+Uses a .kitchen.yml file to detail:
+- Driver - Plugin being used to create your test instance - can be overidden at the platform and suite level
+- Provisioner - How chef-client is being simulated, i.e. chef_solo or chef_zero
+- Verifier - What to use for testing; InSpec is now popular.
+- Transport - How to execute commands and connect to the test instances, i.e. ssh or winrm
+- Suites - Collection of test suites to run, i.e. a run_list of what you are testing
+- Platform - OS platforms to test
+
+
+== DESCRIBING WHAT CHEF IS ==
+
+=== CHEF COMMUNITY ===
+* The open-source nature of Chef
+There is only one completely free, fully Open Source, Chef Server.
+
+* The Chef community
+The Chef community is a mixture of professionals and volunteers who come from all over the world and work together to make Chef better. 
+Community members fulfill many roles, including mentoring, teaching, and connecting with other members of the community.
+
+* What the open source tools are
+Chef Server & chef-client
+ChefDK
+Chef Push Jobs Server and Client
+InSpec
+Supermarket
+
+=== PRODUCTS AND FEATURES ===
+* The Chef Automate value proposition
+Chef Automate provides a full suite of enterprise capabilities for workflow, visibility and compliance.
+Chef Automate integrates with the open-source products Chef, InSpec and Habitat.
+Chef Automate comes with comprehensive 24×7 support services for the entire platform, including open source components.
+
+* The Chef Automate features (QuestionNum:83)(In Docs?:Yes)(In Training?:Yes)
+See above
+
+* What the workflow feature is and how it affects productivity
+Chef Automate manages changes to both infrastructure and application code.
+Gives operations and development teams a common platform for developing, testing, and deploying cookbooks, applications, and more.
+Chef Automate includes a git server for hosting project repositories, can integrate with Github if required.
+Each cookbook or application has a project.
+Each project has one or more pipelines. The typical setup is for each project to have a single pipeline that targets the master branch.
+A pipeline is series of automated and manual quality gates that take software changes from development to delivery.
+Stages of Chef Automate Pipeline:
+Verify, Build, Acceptance, Union, Rehearsal, and Delivered
+
+The stages and the phases are fixed for all pipelines in Chef Automate.
+What happens in any given phase is completely up to you; if you can describe the activity in a Chef recipe, then you can make it happen in a phase.
+
+* What the compliance feature is and how it affects workflow
+Chef Automate 1.5.46 or later (previously compliance was a standalone solution) provides you the ability to:
+- store and manage compliance profiles
+- view compliance reports over time
+- quickly filter compliance reports through a dashboard interface.
+In addition to seeing your compliance status, you can also easily see which controls failed and why to provide you immediate information for remediation.
+Remediation would then be completed via workflow.
+
+* What the visibility feature is and how it affects workflow
+Allows you to monitor and visualize node status and convergence events from any Chef servers or clients.
+Can use reported failures/issues to drive remediation through workflow.
+
+* How a private Supermarket fits into a workflow (QuestionNum:84)
+Set "knife[:supermarket_site] = http://tesco.com" in your knife.rb.
+<=12.12 is knife supermarket, later versions now use knife cookbook site
+knife cookbook site share|unshare|download|install|show|search COOKBOOK_NAME
+knife cookbook site list
+You configure your private supermarket URL in your cookbook Berksfile - e.g. below searches private first and then public
+source 'https://private.supermarket.com'
+source 'https://supermarket.chef.io'
+
+* The Chef Automate open source components (QuestionNum:77)
+Chef - Infrastructure Automation
+Habitat - Application Automation
+InSpec - Compliance Automation
+
+* What Visibility is (QuestionNum:78)
+Allows you to monitor and visualize node status and convergence events from any Chef servers or clients in your Chef Automate cluster during a chef-client run.
+This data can be filtered and searched in the UI using a simple query language.
+
+* What Habitat is
+Habitat is an integrated solution to building, running, and maintaining your application throughout its lifetime.
+Build your app pkgs in Studio, store them in Depot, and run them with Supervisor.
+It builds your application and its services into immutable artifacts with declarative dependencies.
+It provides automatic rebuilds of your application and its services as your application code and dependencies have upstream updates.
+
+* What InSpec is (QuestionNum:76)
+InSpec is an open-source testing framework for infrastructure with a human-readable language for specifying compliance, security and other policy requirements.
+When compliance is code, you can integrate automated tests that check for adherence to policy into any stage of your deployment pipeline.
+
+describe package('telnetd') do
+  it { should_not be_installed }
+end
+
+describe inetd_conf do
+  its('telnet') { should eq nil }
+end
+
+inetd_conf is an example of a resource, as is sshd_config, mount, firewalld and many others
+
+* What Chef Compliance is (QuestionNum:79)
+Compliance enables nodes to be audited via a set of InSpec profiles.
+
+
+=== END-TO-END WORKFLOW ===
+* How all Chef products, features and technologies fit together
+Chef Automate is effectively an integrated dashboard that links the Chef, Habitat, and InSpec solutions together.
+Wrapped around this is Chef Workflow, which provides effective management and governance of using these tools to develop and deploy the code that runs your business.
+
+* The workflow scope (QuestionNum:86)
+It provides CI/CD pipelines for your infrastructure & applications projects that are stored in git, i.e. development of your Chef cookbooks and Habitat packages.
+With fixed stages of: Verify, Build, Acceptance, Union, Rehearsal, Delivered
+
+* The compliance scope (QuestionNum:88)(In Docs?:Yes)(In Training?:No)
+Compliance is provided via InSpec profiles that are used to audit nodes and report their status in Visibility.
+These results can then be used to remediate nodes, via updated cookbooks pushed through Workflow.
+
+* The Chef Automate scope (QuestionNum:87)(In Docs?:Yes)(In Training?:Yes)
+Automate stitches all the solutions together, so that usage and output from Chef, Habitat, & InSpec is available in one place.
+This is coupled together with Workflow to manage development change.
+
+* How Chef Automate enhances DevOps behaviors
+Provides single tool to draw together Workflow, Compliance, Chef, Habitat.
+Effectively manage development change and release via Workflow.
+Clear phases that implement approval controls for strong governance.
+
+* The aspects of Chef that are relevant to security and compliance teams
+Compliance and InSpec profiles, output of Visibility.
+Roles/Cookbooks that deal with OS and Application security hardening.
+Workflow management, testing, and control of update releases.
+ 
+* The aspects of Chef that are relevant to development teams
+Workflow for providing the framework and governance to manage their development work on cookbooks and Habitat packages.
+InSpec profiles for testing Application configuration compliance and integration testing.
+Supermarket to source and store released cookbooks.
+ChefDK - toolkit for Chef development ecosystem, especially Test Kitchen.
+TDD as an approach to writing cookbook recipes.
+
+* The aspects of Chef that are relevant to operations teams
+Workflow to track and identify change to infrastructure and application code.
+Supermarket as an artifact respository of the code use to build infrastructure and applications.
+Visibility to report on the health of chef-client runs.
+Compliance to determine nodes that may fail audit requirements and require remediation.
+
+* The aspects of Chef that are relevant to change advisory boards
+Workflow for the change approval process and governance.  Also as a source to help prioritise and coordinate change.
+Visibility to assess state of the infrastructure environment prior, during, and post planned changes.
+
+* How Chef enforces consistency across infrastructure
+Cookbook code is (should be) idempotent and converge a node to a desired state, where it should remain after the 1st, 2nd, or 100th run.
+Sharing this code across multiple nodes ensures infrastructure is built consistently and remains in the desired state.
+
+
+== DESIGN PHILOSOPHY ==
+
+=== CHEF IS WRITTEN IN RUBY ===
+* How Chef uses a Ruby-based DSL
+Chef is written in Ruby and Erlang.
+It uses Ruby-based DSLs to provide easy to use methods for developers to write cookbook recipe configuration code.
+This is implemented as a Recipe DSL; there is also a Handler DSL.
+This means that anything that can be done using Ruby can also be done in a recipe.
+
+* How to use raw Ruby to extend Chef (QuestionNum:91, 92)(In Docs?:Yes)(In Training?:No)
+You can write your own custom resources to extend Chef.
+You can also use raw Ruby directly in your recipes, though you need to be aware of the separate compile and converge phases.
+
+* What a library is
+Essentially a library is code that extends existing classes or provides new functionality that is shared for easy re-use and to prevent code duplication.
+This could be a library cookbook or stored in the libraries directory of a cookbook.
+
+
+=== EXPLICIT ACTIONS ===
+* How Chef uses explicit actions and only does what you tell it to
+Cookbook recipes require resources to be defined in recipes, which explicitly detail what is required.
+This includes any configuration parameters that a specific resource allows to be set, along with an action, such as :create or :start.
+
+* Actions for common resources such as (QuestionNum:98)(In Docs?:Yes)(In Training?:No) the :nothing action (QuestionNum:97)(In Docs?:Yes)(In Training?:No)
+e.g. :nothing, :create, :create_if_missing, :sync, :delete, :run, :start, :restart, :stop, :status
+
+* What it means to roll back infrastructure (QuestionNum:96)(In Docs?:Yes)(In Training?:Yes)
+In Chef there is no roll back, there is only do something and forward fix if required.  Unless you specifically create a cookbook to reverse the actions of another.
+Recipes would need to be forward fixed to ensure a node reaches the correct desired state.
+
+* What happens if you reverse the order of resources in a recipe
+The resources are executed in the order they appear in a recipe, top to bottom.
+May mean a recipe fails if the resource ordering does not handle dependant actions.
+
+* If Chef can automagically detect what patches should be applied to a system
+We can determine installed package versions and use compliance to confirm a required version set are installed.
+As patches are released, nodes would fail this check until they are remediated.
+Remediation could be handled by Chef cookbooks.
+
+Identify which patches are required
+Apply and evaluate the patches in a testing environment
+Distribute the patches to the rest of the fleet
+Confirm the patches have been applied successfully
+https://blog.chef.io/2017/01/05/patch-management-system-using-chef-automate/
+
+
+=== PUSH VS PULL ===
+* The difference between push and pull models
+chef-client works using the pull approach.  It initiates connection to the Chef Server to pull down its run-list and required cookbooks to converge to the desired state.
+There are Chef push jobs, which allow a push approach from the server side to be used.
+
+
+* The benefits of a pull model (QuestionNum:103)(In Docs?:Yes)(In Training?:Yes)
+Reduced load on the server as more of the processing is completed on the client side, which improves the scalability in terms of allowing more nodes to be managed.
+
+* When a push model is appropriate
+For ad-hoc deployment that can be initiated exactly when required.
+
+* What firewall rules need to be enabled for Chef client (QuestionNum:101)(In Docs?:Yes)(In Training?:No)
+Either port 443 or 80.
+
+* The Chef client converge intervals and how to invoke immediate updates (QuestionNum:102)(In Docs?:Yes)(In Training?:No)
+Could be a cron schedule, which includes a splay (sleep) to randomise chef-client initiations or a chef-client daemon setting.
+Chef Push Jobs Server would be required to invoke immediate updates or using 'knife ssh' if keys are deployed.
+
+
+=== RECOMMENDED WORKFLOWS ===
+* What wrapper cookbooks are (QuestionNum:111)(In Docs?:Yes)(In Training?:Yes)
+Wrapper cookbooks are normally used with a library or dependant cookbook which you would like to consume, but need to change some attributes.
+The wrapper cookbook could have different attribute values and might only call particular recipes or use libraries provided in the cookbook it depends on.
+
+* How to use source control, e.g. GitHub (QuestionNum:112)(In Docs?:??)(In Training?:??)
+Chef Workflow includes git or you can use github or github enterprise.
+Cookbooks should always be stored in a source control system.
+
+* How to use the TDD approach (QuestionNum:113)(In Docs?:Yes)(In Training?:No)
+Write test(s)
+Run test(s) - note failure(s)
+Write code to pass test(s)
+Run test(s) - adjust code until they pass
+Refactor code - as codebase grows re-structure it so it is better ordered
+
+
+== CHEF WORKFLOW BASICS ==
+
+=== CONTINUOUS DELIVERY ===
+* What continuous delivery (CD) is (QuestionNum:117, 118)(In Docs?:No)(In Training?:No)
+Continuous Integration (CI)/Continuous Delivery (CI/CD) is the process of automating the build and testing of code every time a team member commits changes to version control.
+CI encourages developers to share their code and unit tests by merging their changes into a shared version control repository after every small task completion.
+Committing code triggers an automated build system to grab the latest code from the shared repository and to build, test, and validate the full master branch (also known as the trunk or main).
+
+* What role Chef plays in CD
+Chef promotes a TDD approach with Test Kitchen, which encourages a rapid build and test cycle.
+Workflow uses git to store cookbooks in version control and has a framework that supports CI/CD.
+This is driven by creating project pipelines based on the git repos and set within the verify, build, acceptance, union, rehearsal, & delivered stages.
+
+* When to run tests (QuestionNum:116)(In Docs?:Yes)(In Training?:Yes)
+Tests can and should be run at each of the stages of the Workflow managed pipeline.
+Even outside of Workflow, Test Kitchen can be used for quick and easy testing of all changes.
+
+* Why automated configuration management is critical to CD
+Removes human error from the process and provides a fast, consistent, and repeatable platform to support CI/CD development and release.
+
+* Why CD is *more* secure than manual processes
+It can be built around a framework that has clear governance and approval stages, so that code follows a rigorous cycle of testing and review before release.
+Manual processes are prone to human error and may not be repeated consistently, especially when different people are involved.
+They are also likely to result in a slower release cycle, which is not congruent with CI/CD.
+
+
+=== USING COMPLIANCE TO SCAN ===
+* The benefits of the agentless nature of Chef compliance
+Still requires InSpec on the host (included in chef-client) if you are running it locally.
+Is a benefit that you don't have yet another agent running on a server, which is one less thing to have to manage.
+
+* How to check for compliance on nodes that don't have the Chef client installed(QuestionNum:123)
+You can run InSpec against a remote node using ssh, WinRM, or Docker connections.
+
+* Basic use cases for compliance (QuestionNum:122)(In Docs?:Yes)(In Training?:No)
+To meet regulatory and compliance standards, which could be internal or external.  
+There are industry standard benchmarks available as InSpec profiles, such as CIS Benchmarks.
+To validate that cookbook code has configured nodes to the desired state.
+To audit nodes across your estate to uncover issues and plan for remediation.
+
+* What language is used to express compliance requirements (QuestionNum:121)
+InSpec.
+
+
+=== USING CHEFDK TO TEST YOUR CHANGES ===
+* The Test Kitchen value proposition (QuestionNum:126, 128)
+kitchen is an integration testing tool used by the chef-client.
+It is included in the ChefDK and covers a wide range of platforms on multiple cloud or virtualisation providers.
+Supports many Ruby testing frameworks:Rspec, Serverspec, Bats, & Minitest - with the latter 3 all based on Rspec.
+Uses a plugin driver architecture to enable testing on a wide range of cloud providers and virtualisation topologies, e.g. Vagrant, ec2, docker, google etc.
+
+* Basic use cases for Chef DK
+Helps to provide a common workflow and ecosystem for Chef cookbook development.
+A set of standard development tools for cookbook development.
+
+=== PUBLISHING ARTIFACTS TO CHEF SERVER AND SUPERMARKET ===
+* How to publish artifacts to Chef server (QuestionNum:136, 138)
+The 'knife' command can be used to upload cookbooks, data bags, roles to the Chef Server.
+Can also edit node objects on the Chef server or edit the environments to change cookbook version pinnings.
+
+* What Berkshelf is
+Berkshelf is a dependency manager for Chef cookbooks. 
+Can easily depend on community cookbooks and have them safely included in your workflow.
+Can also ensure that your CI systems reproducibly select the same cookbook versions, and can upload and bundle cookbook dependencies without needing a locally maintained copy.
+
+* If the Chef Automate workflow feature can push artifacts to things other than a Chef server or Supermarket
+Workflow can be integrated with github or github enterprise.
+Can also publish build artifacts directly to servers.
+
+* How to manage cookbook dependencies (QuestionNum:137)
+Cookbook dependencies can be managed with Berkshelf.
+Cookbook dependencies must be listed in a cookbook's metadata.rb file.
+
+
+== UNDERSTANDING BASIC CHEF CODE ==
+
+=== APPROACHABLE CUSTOM CODE ===
+* How to recognizing custom code (QuestionNum:141)
+Could be raw code written in recipes.
+Libraries provided in a cookbook.
+Custom resources provided to extend existing Chef functionality or to provide new functionality.
+
+* How to use libraries (QuestionNum:142)
+Add them to 'libraries' folder in the cookbook.
+Create custom resources to avoid repeating code throughout cookbook recipes.
+
+* How to customize Chef(QuestionNum:143)
+With libraries & custom resources.
+
+
+=== APPROACHABLE CHEF CODE ===
+* How to read a recipe that includes the 'package', 'file', and 'service' resources and describe its intent. (QuestionNum:146, 147)
+
+# File Resource example
+file '/var/www/customers/public_html/index.php' do
+  content '<html>This is a placeholder for the home page.</html>'
+  mode '0755'
+  owner 'web_admin'
+  group 'web_admin'
+end
+
+
+# File & Service Resources example
+file '/etc/nginx/ssl/example.crt' do
+   mode '0600'
+   owner 'root'
+end
+
+service 'nginx' do
+   subscribes :reload, 'file[/etc/nginx/ssl/example.crt]', :immediately
+end
+
+
+# Package Resource examples
+package %w(package1 package2) do
+  version [ '1.3.4-2', '4.3.6-1']
+end
+
+package %w(package1 package2)  do
+  action :upgrade
+end
+
+package %w(package1 package2)  do
+  action :remove
+end
+
+package %w(package1 package2)  do
+  action :purge
+end
+
+package 'curl'
+  case node[:platform]
+  when 'redhat', 'centos'
+    package 'zlib-devel'
+    package 'openssl-devel'
+    package 'libc6-dev'
+  when 'ubuntu', 'debian'
+    package 'openssl'
+    package 'pkg-config'
+    package 'subversion'
+  end
+end
+
+
+# Template & Service Resources examples
+template '/tmp/somefile' do
+  mode '0755'
+  source 'somefile.erb'
+end
+
+service 'apache' do
+  action :enable
+  subscribes :reload, 'template[/tmp/somefile]', :immediately
+end
