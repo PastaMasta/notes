@@ -9,5 +9,5 @@ Be me
 
 License and Authors
 -------------------
-Authors: PastaMasta  
+Authors: PastaMasta
 See [LICENSE](LICENSE.md) for license rights and limitations (GNU GPLv3).
