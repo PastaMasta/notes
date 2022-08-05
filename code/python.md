@@ -1,7 +1,8 @@
-Debugging
+Python
 ======================================
 
 Interactive debugger:
+
 ```
-require 'pry' ; binding.pry
+import pdb; pdb.set_trace()
 ```
