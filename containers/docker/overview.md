@@ -76,3 +76,15 @@ docker commit some_container new_image_name
 docker run -p 80:80 -d httpd
 curl localhost:80
 ```
+
+Ports need to be exposed in the image before they can be published externally to the host
+
+## Volumes
+
+Used to store persistant data for containers.
+Stored on the host, mounted inside the container
+
+```
+docker volume ls
+docker volume create myvol
+```
