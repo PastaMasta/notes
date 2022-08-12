@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  wiki:
+    image: gollumwiki/gollum:v5.3.0
+    container_name: gollum_wiki
+    ports:
+      - "4567:4567"
+    volumes:
+      - .:/wiki
