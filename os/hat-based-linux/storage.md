@@ -1,6 +1,13 @@
 LVM / Storage
 ======================================
 
+Extend a VG:
+```
+vgextend vg01 /dev/nvme1n1
+lvextend -r -L +50G /dev/vg01/var
+# or
+lvextend -r -l +50%FREE /dev/vg01/var
+```
 
 Fix duplicated UUID:
 ```
