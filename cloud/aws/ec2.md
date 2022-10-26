@@ -15,3 +15,8 @@ aws ec2 describe-images --filters 'Name=name,Values=somename_0.1*,somename_0.2*'
 # or on one line:
 #  | jq -r -c '.Images[]|[.Name,.ImageId]|@tsv' | sort -h
 ```
+
+List all AMIs by name
+```
+aws ec2 describe-images --query 'Images[*].[Name]' --output text
+```
