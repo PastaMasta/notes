@@ -1,8 +1,7 @@
-Debugging
+Ruby
 ======================================
 
 Interactive debugger:
-
 ```
-import pdb; pdb.set_trace()
+require 'pry' ; binding.pry
 ```
