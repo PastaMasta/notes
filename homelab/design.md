@@ -55,4 +55,26 @@ These will automount from the master server as required
     `-- storage - Storage pool for KVM
 ```
 
+Services
 -------------------
+
+Docker containers:
+  - Plex
+  - Monitoring / Dashboard
+
+KVM
+  - Unifi-controller
+  - VMs
+
+Build process
+-------------------
+
+Install Linux from ISO / pxe from rebuildatron vagrant from another machine
+
+Install Ansible
+git clone down NAS ansible repo
+Run ansible install:
+  - sets up zfs on Linux
+  - reboot to discover zfs array + mount / import
+  - Installs: docker
+  - Clones down docker repo
