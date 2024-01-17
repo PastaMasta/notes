@@ -1,6 +1,11 @@
 SSM
 ======================================
 
+## Login with a shell to ec2 instance
+```
+aws ssm start-session --target ${ec2InstanceId} --document-name AWS-StartInteractiveCommand --parameters command="bash -l"
+```
+
 ## Forward local ports to remote ec2 ports
 
 In this example we forward the local 55678 to the remote host 3389 for RDP.
